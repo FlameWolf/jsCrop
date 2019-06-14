@@ -25,3 +25,5 @@ The `options` parameter will be an object. These properties are currently suppor
 `setCropRegion (`_`left, top, width, height`_`)`: Set the position and size of the crop region.
 
 `destroy`: Destroy the `jsCrop` object and release the resources.
+## Demo
+Visit [https://flamewolf.github.io/jsCrop.html](https://flamewolf.github.io/jsCrop.html).
