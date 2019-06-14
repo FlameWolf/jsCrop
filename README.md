@@ -14,14 +14,14 @@ The `options` parameter will be an object. These properties are currently suppor
 `outputCanvas`: A `<canvas>` element on the page on to which `jsCrop` should draw the output image.
 `startInCropMode`: Whether or not to display the crop grid initially. Default is `true`.
 ## Methods
-`enableCropMode(`_`flag`_`)`: Turns crop mode on/off.
+`enableCropMode (`_`flag`_`)`: Turns crop mode on/off.
 
-`setOutputCanvas(`_`canvasElement`_`)`: Specify a `<canvas>` element on the page on to which jsCrop should draw the output image.
+`setOutputCanvas (`_`canvasElement`_`)`: Specify a `<canvas>` element on the page on to which jsCrop should draw the output image.
   
 `drawCroppedImage`: Draw the crop result to the output canvas.
 
 `downloadCroppedImage`: Download the crop result.
 
-`setCropRegion(`_`left, top, width, height`_`)`: Set the position and size of the crop region.
+`setCropRegion (`_`left, top, width, height`_`)`: Set the position and size of the crop region.
 
 `destroy`: Destroy the `jsCrop` object and release the resources.
