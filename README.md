@@ -16,7 +16,7 @@ The `options` parameter will be an object. These properties are currently suppor
 ## Methods
 `enableCropMode(`_`flag`_`)`: Turns crop mode on/off.
 
-`setOutputCanvas(`_`canvasElement_`)`: Specify a `<canvas>` element on the page on to which jsCrop should draw the output image.
+`setOutputCanvas(`_`canvasElement`_`)`: Specify a `<canvas>` element on the page on to which jsCrop should draw the output image.
   
 `drawCroppedImage`: Draw the crop result to the output canvas.
 
