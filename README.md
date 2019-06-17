@@ -9,6 +9,12 @@ For example, if your page has an `<img>` element with its `id` as `imageToCrop`,
 ```
 let cropper = jsCrop.initialise(document.getElementById("imageToCrop"));
 ```
+> :bulb: _Tip:_ If you try to pass an image to the `initialise` function before it is loaded, `jsCrop` may not work properly. To avoid this, put the call to the `initialise` function inside the `load` event handler for the image, like this:
+> ```
+> document.getElementById("imageToCrop").addEventListener("load", function() {
+> 	jsCrop.initialise(this));
+> });
+> ```
 The `options` parameter will be an object. These properties are currently supported:
 
 `outputCanvas`: A `<canvas>` element on the page on to which `jsCrop` should draw the output image.

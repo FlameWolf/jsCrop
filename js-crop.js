@@ -83,10 +83,10 @@ let jsCrop = (function() {
 						this.drawCroppedImage();
 					}
 					else {
-						// Hide the image overlay
-						this.imageOverlay.style.opacity = "0";
 						// Hide the crop grid
 						this.gridHolderStyle.removeProperty("opacity");
+						// Hide the image overlay
+						this.imageOverlay.style.opacity = "0";
 					}
 				},
 				// Set the output canvas
@@ -386,6 +386,17 @@ let jsCrop = (function() {
 				},
 				"destroy": function() {
 					let imageHolder = this.imageToCrop.parentElement;
+					let imageHolderComputedStyle = getComputedStyle(imageHolder);
+					if(imageHolderComputedStyle.zIndex != "auto") {
+						let imageHolderStyle = imageHolder.style;
+						let imageElementStyle = imageElement.style;
+						imageElementStyle.position = imageHolderComputedStyle.position;
+						imageElementStyle.zIndex = imageHolderComputedStyle.zIndex;
+						imageHolderStyle.removeProperty("position");
+						imageHolderStyle.removeProperty("z-index");
+						imageElementStyle = null;
+						imageHolderStyle = null;
+					}
 					imageHolder.parentElement.insertBefore(this.imageToCrop, imageHolder);
 					this.gridHolder.removeEventListener("transitionend", this.hideGrid.bind(this));
 					this.grid.removeEventListener("mousedown", this.startResizingGrid.bind(this));
@@ -412,6 +423,7 @@ let jsCrop = (function() {
 					this.gridHolder = null;
 					this.imageOverlay = null;
 					this.imageToCrop = null;
+					imageHolderComputedStyle = null;
 					imageHolder = null;
 				},
 				// Initialise the crop grid and the output canvas
@@ -457,6 +469,7 @@ let jsCrop = (function() {
 					imageToCropClientBoundingRect = null;
 				}
 			};
+			let imageElementComputedStyle = getComputedStyle(imageElement);
 			let imageHolder = document.createElement("div");
 			let resizerClassNames = ["top-left", "top-mid", "top-right", "right-mid", "bot-right", "bot-mid", "bot-left", "left-mid"];
 			let gridTableBody = document.createElement("tbody");
@@ -467,8 +480,8 @@ let jsCrop = (function() {
 				resizer.className = resizerClassName;
 				resizerHandle.className = `${resizerClassName} handle`;
 				cropper.resizers[value.split("-").reduce((x, y) => x += (y[0].toUpperCase() + y.substring(1)))] = resizer;
-				cropper.gridHolder.appendChild(resizer);
 				cropper.gridHolder.appendChild(resizerHandle);
+				cropper.gridHolder.appendChild(resizer);
 				resizerHandle = null;
 				resizer = null;
 			};
@@ -494,6 +507,16 @@ let jsCrop = (function() {
 			imageHolder.appendChild(imageElement);
 			imageHolder.appendChild(cropper.imageOverlay);
 			imageHolder.appendChild(cropper.gridHolder);
+			if(imageElementComputedStyle.zIndex != "auto") {
+				let imageHolderStyle = imageHolder.style;
+				let imageElementStyle = imageElement.style;
+				imageHolderStyle.position = imageElementComputedStyle.position;
+				imageHolderStyle.zIndex = imageElementComputedStyle.zIndex;
+				imageElementStyle.removeProperty("position");
+				imageElementStyle.removeProperty("z-index");
+				imageElementStyle = null;
+				imageHolderStyle = null;
+			}
 			cropper.initialiseGrid();
 			if(!options)
 				options = {};
@@ -502,6 +525,7 @@ let jsCrop = (function() {
 			gridTableBody = null;
 			resizerClassNames = null;
 			imageHolder = null;
+			imageElementComputedStyle = null;
 			return Object.freeze({
 				"enableCropMode": cropper.enableCropMode.bind(cropper),
 				"setOutputCanvas": cropper.setOutputCanvas.bind(cropper),
