@@ -489,7 +489,6 @@ let jsCrop = (function() {
 			}
 			cropper.grid.appendChild(gridTableBody);
 			cropper.gridHolder.appendChild(cropper.grid);
-			imageElement.crossOrigin = "anonymous";
 			imageElement.parentElement.insertBefore(imageHolder, imageElement);
 			imageHolder.appendChild(imageElement);
 			imageHolder.appendChild(cropper.imageOverlay);
