@@ -134,7 +134,7 @@ let jsCrop = (function() {
 					let anchorElementStyle = anchorElement.style;
 					this.drawCroppedImage();
 					anchorElement.href = this.cropResult.toDataURL("image/png").replace("image/png", "image/octet-stream");
-					anchorElement.download = `${this.imageToCrop.src.replace(/^.*[\\\/]/, "")}-cropped.png`;
+					anchorElement.download = `${this.imageToCrop.src.match(/^.*[\\\/](.+?)(\.[^.]*$|$)/)[0]}-cropped.png`;
 					anchorElementStyle.display = "none";
 					anchorElementStyle.visibility = "hidden";
 					anchorElementStyle.opacity = 0;
