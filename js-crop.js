@@ -1,22 +1,24 @@
 // Enable strict mode to enforce variable declaration
 "use strict";
-window.__eventListeners__ = new Array();
+window.__eventListeners__ = new Set();
 Object.defineProperties(Object.prototype, {
-	"addEventListenerEx": {
-		"value": function(type, listener) {
-			window.__eventListeners__.push({
+	"attachEventHandler": {
+		"value": function(type, handler) {
+			window.__eventListeners__.add({
 				"element": this,
 				"type": type,
-				"listener": listener
+				"handler": handler
 			});
-			this.addEventListener(type, listener);
+			this.addEventListener(type, handler);
 		}
 	},
-	"removeEventListenerEx": {
+	"detachAllEventHandlers": {
 		"value": function(type) {
-			let eventListenerRemover = function(value) {
-				if((value.element === this) && (value.type === type))
-					this.removeEventListener(type, value.listener);
+			let eventListenerRemover = function(key, value, source) {
+				if((value.element === this) && (value.type === type)) {
+					this.removeEventListener(type, value.handler);
+					source.delete(value);
+				}
 			};
 			window.__eventListeners__.forEach(eventListenerRemover.bind(this));
 		}
@@ -377,8 +379,8 @@ let jsCrop = (function() {
 					event.preventDefault();
 					// Stop listening to the mouse move and mouse up event handlers
 					// because they are no longer needed once the mouse is released
-					document.removeEventListenerEx("mousemove");
-					document.removeEventListenerEx("mouseup");
+					document.detachAllEventHandlers("mousemove");
+					document.detachAllEventHandlers("mouseup");
 					// No mouse down trigger
 					this.mouseDownElement = null;
 				},
@@ -398,8 +400,8 @@ let jsCrop = (function() {
 					this.mouseDownElement = event.currentTarget;
 					// Start listening to the mouse move and mouse up events
 					// when the mouse is pressed on a resizer element
-					document.addEventListenerEx("mousemove", this.resizeGrid.bind(this));
-					document.addEventListenerEx("mouseup", this.endResizingGrid.bind(this));
+					document.attachEventHandler("mousemove", this.resizeGrid.bind(this));
+					document.attachEventHandler("mouseup", this.endResizingGrid.bind(this));
 				},
 				// Hide the crop grid when it is made transparent so that it may no longer respond to events
 				"hideGrid": function() {
@@ -407,34 +409,41 @@ let jsCrop = (function() {
 						this.gridHolderStyle.removeProperty("visibility");
 				},
 				"destroy": function() {
-					let imageHolder = this.imageToCrop.parentElement;
-					imageHolder.parentElement.insertBefore(this.imageToCrop, imageHolder);
-					this.gridHolder.removeEventListenerEx("transitionend");
-					this.grid.removeEventListenerEx("mousedown");
-					Object.entries(this.resizers).forEach(function([key, value]) {
-						value.removeEventListenerEx("mousedown");
-					}.bind(this));
-					// Remove the style and context references
-					this.cropResultStyle = null;
-					this.gridHolderStyle = null;
-					this.cropResultContext = null;
-					this.imageOverlayContext = null;
-					// Remove the newly created page elements
-					Object.entries(this.resizers).forEach(function([key, value]) {
-						value.remove();
-					}.bind(this));
-					this.grid.remove();
-					this.gridHolder.remove();
-					this.imageOverlay.remove();
-					imageHolder.remove();
-					// Remove the page element references
-					this.resizers = null;
-					this.cropResult = null;
-					this.grid = null;
-					this.gridHolder = null;
-					this.imageOverlay = null;
-					this.imageToCrop = null;
-					imageHolder = null;
+					try {
+						// Move the image element back to its original position in the DOM tree
+						let imageHolder = this.imageToCrop.parentElement;
+						imageHolder.parentElement.insertBefore(this.imageToCrop, imageHolder);
+						// Detach the event handlers
+						this.gridHolder.detachAllEventHandlers("transitionend");
+						this.grid.detachAllEventHandlers("mousedown");
+						Object.entries(this.resizers).forEach(function([key, value]) {
+							value.detachAllEventHandlers("mousedown");
+						}.bind(this));
+						// Remove the style and context references
+						this.cropResultStyle = null;
+						this.gridHolderStyle = null;
+						this.cropResultContext = null;
+						this.imageOverlayContext = null;
+						// Remove the newly created page elements
+						Object.entries(this.resizers).forEach(function([key, value]) {
+							value.remove();
+						}.bind(this));
+						this.grid.remove();
+						this.gridHolder.remove();
+						this.imageOverlay.remove();
+						imageHolder.remove();
+						// Remove the page element references
+						this.resizers = null;
+						this.cropResult = null;
+						this.grid = null;
+						this.gridHolder = null;
+						this.imageOverlay = null;
+						this.imageToCrop = null;
+						imageHolder = null;
+					}
+					catch {
+						void(0);
+					}
 				},
 				// Initialise the crop grid and the output canvas
 				"initialiseGrid": function() {
@@ -469,12 +478,12 @@ let jsCrop = (function() {
 					this.setOutputCanvas(document.createElement("canvas"));
 					// Attach event handlers
 					Object.entries(this.resizers).forEach(function([key, value]) {
-						value.addEventListenerEx("mousedown", this.startResizingGrid.bind(this));
+						value.attachEventHandler("mousedown", this.startResizingGrid.bind(this));
 					}.bind(this));
-					this.grid.addEventListenerEx("mousedown", this.startResizingGrid.bind(this));
-					this.gridHolder.addEventListenerEx("transitionend", this.hideGrid.bind(this));
+					this.grid.attachEventHandler("mousedown", this.startResizingGrid.bind(this));
+					this.gridHolder.attachEventHandler("transitionend", this.hideGrid.bind(this));
 					// Detach event handlers on page unload
-					window.addEventListenerEx("unload", this.destroy.bind(this));
+					window.attachEventHandler("unload", this.destroy.bind(this));
 					// Remove the bounding rectangle reference
 					imageToCropClientBoundingRect = null;
 				}
@@ -485,9 +494,9 @@ let jsCrop = (function() {
 			let addResizer = function(value, index, source) {
 				let resizer = document.createElement("div");
 				let resizerHandle = document.createElement("div");
-				let resizerClassName = `js-crop-resizer ${value}`;
+				let resizerClassName = `js-crop-resizer js-crop-${value}`;
 				resizer.className = resizerClassName;
-				resizerHandle.className = `${resizerClassName} handle`;
+				resizerHandle.className = `${resizerClassName} js-crop-handle`;
 				cropper.resizers[value.split("-").reduce((x, y) => x += (y[0].toUpperCase() + y.substring(1)))] = resizer;
 				cropper.gridHolder.appendChild(resizerHandle);
 				cropper.gridHolder.appendChild(resizer);
