@@ -2,12 +2,10 @@
 "use strict";
 window.__eventListeners__ = new Array();
 Object.defineProperties(Object.prototype, {
-	"eventListeners": {
-		"value": window.__eventListeners__
-	},
 	"addEventListenerEx": {
 		"value": function(type, listener) {
 			window.__eventListeners__.push({
+				"element": this,
 				"type": type,
 				"listener": listener
 			});
@@ -17,7 +15,7 @@ Object.defineProperties(Object.prototype, {
 	"removeEventListenerEx": {
 		"value": function(type) {
 			let eventListenerRemover = function(value) {
-				if(value.type === type)
+				if((value.element === this) && (value.type === type))
 					this.removeEventListener(type, value.listener);
 			};
 			window.__eventListeners__.forEach(eventListenerRemover.bind(this));
