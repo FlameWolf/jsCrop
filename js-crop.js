@@ -1,10 +1,18 @@
 // Enable strict mode to enforce variable declaration
 "use strict";
-window.__eventListeners__ = new Set();
+const bind = Function.prototype.bind;
+Object.defineProperty(Function.prototype, "bind", {
+	"value": function() {
+		const result = bind.apply(this, arguments);
+		result.source = (this.source || this);
+		return result;
+	}
+});
+window.__eventHandlers__ = new Set();
 Object.defineProperties(Object.prototype, {
 	"attachEventHandler": {
 		"value": function(type, handler) {
-			window.__eventListeners__.add({
+			window.__eventHandlers__.add({
 				"element": this,
 				"type": type,
 				"handler": handler
@@ -12,15 +20,17 @@ Object.defineProperties(Object.prototype, {
 			this.addEventListener(type, handler);
 		}
 	},
-	"detachAllEventHandlers": {
-		"value": function(type) {
-			let eventListenerRemover = function(key, value, source) {
-				if((value.element === this) && (value.type === type)) {
-					this.removeEventListener(type, value.handler);
+	"detachEventHandler": {
+		"value": function(type, handler) {
+			let removeHandler = function(key, value, source) {
+				let eventHandler = value.handler;
+				if((value.element === this) && (value.type === type) && ((eventHandler.source || eventHandler) === (handler.source || handler))) {
+					this.removeEventListener(type, eventHandler);
 					source.delete(value);
 				}
+				eventHandler = null;
 			};
-			window.__eventListeners__.forEach(eventListenerRemover.bind(this));
+			window.__eventHandlers__.forEach(removeHandler.bind(this));
 		}
 	}
 });
@@ -377,10 +387,10 @@ let jsCrop = (function() {
 				"endResizingGrid": function(event) {
 					// Prevent the default action
 					event.preventDefault();
-					// Stop listening to the mouse move and mouse up event handlers
+					// Stop listening to the mouse up and mouse move event handlers
 					// because they are no longer needed once the mouse is released
-					document.detachAllEventHandlers("mousemove");
-					document.detachAllEventHandlers("mouseup");
+					document.detachEventHandler("mouseup", this.endResizingGrid.bind(this));
+					document.detachEventHandler("mousemove", this.resizeGrid.bind(this));
 					// No mouse down trigger
 					this.mouseDownElement = null;
 				},
@@ -414,10 +424,11 @@ let jsCrop = (function() {
 						let imageHolder = this.imageToCrop.parentElement;
 						imageHolder.parentElement.insertBefore(this.imageToCrop, imageHolder);
 						// Detach the event handlers
-						this.gridHolder.detachAllEventHandlers("transitionend");
-						this.grid.detachAllEventHandlers("mousedown");
+						window.detachEventHandler("unload", this.destroy.bind(this));
+						this.gridHolder.detachEventHandler("transitionend", this.hideGrid.bind(this));
+						this.grid.detachEventHandler("mousedown", this.startResizingGrid.bind(this));
 						Object.entries(this.resizers).forEach(function([key, value]) {
-							value.detachAllEventHandlers("mousedown");
+							value.detachEventHandler("mousedown", this.startResizingGrid.bind(this));
 						}.bind(this));
 						// Remove the style and context references
 						this.cropResultStyle = null;
