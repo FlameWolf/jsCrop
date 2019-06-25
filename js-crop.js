@@ -1,63 +1,64 @@
 // Enable strict mode to enforce variable declaration
 "use strict";
-// Override Function.prototype.bind so that the new Function object returned by it
-// contains a reference to the original Function object on which it was called
-const bind = Function.prototype.bind;
-Object.defineProperty(Function.prototype, "bind", {
-	"value": function() {
-		const result = bind.apply(this, arguments);
-		Object.defineProperty(result, "__source__", {
-			"value": (this.__source__ || this)
-		});
-		return result;
-	}
-});
-// A list that will store the event handlers attached to elements so that they can be detached properly later
-Object.defineProperty(window, "__eventHandlers__", {
-	"value": new Set()
-});
-Object.defineProperties(Object.prototype, {
-	// Extension function to attach an event handler to an element
-	"attachEventHandler": {
-		"value": function(type, handler) {
-			// Add an object whose properties are the element, the event type, and the event handler to the list of event handlers
-			window.__eventHandlers__.add({
-				"element": this,
-				"type": type,
-				"handler": handler
+(function() {
+	// A reference to the original Function.prototype.bind
+	const bind = Function.prototype.bind;
+	// A list that will store the event handlers attached to elements so that they can be detached properly later
+	const eventHandlers = new Set();
+	// Override Function.prototype.bind so that the new Function object returned by it
+	// contains a reference to the original Function object on which it was called
+	Object.defineProperty(Function.prototype, "bind", {
+		"value": function() {
+			const result = bind.apply(this, arguments);
+			Object.defineProperty(result, "__source__", {
+				"value": (this.__source__ || this)
 			});
-			// Attach the event handler
-			this.addEventListener(type, handler);
+			return result;
 		}
-	},
-	// Extension function to detach an event handler from an element
-	"detachEventHandler": {
-		"value": function(type, handler) {
-			// Detach the event handler and remove the corresponding entry from the list of event handlers
-			let removeHandler = function(value, index, source) {
-				let eventHandler = value.handler;
-				if((value.element === this) && (value.type === type) && ((eventHandler.__source__ || eventHandler) === (handler.__source__ || handler))) {
-					// Detach the event handler
-					this.removeEventListener(type, eventHandler);
-					// Remove the object containing the element, the event type,
-					// and the event handler from the list of event handlers
-					window.__eventHandlers__.delete(value);
-					// Exit the loop
-					return true;
-				}
-				eventHandler = null;
-			};
-			// Loop through the list of event handlers until the one that should be removed is found
-			Array.from(window.__eventHandlers__).some(removeHandler.bind(this));
+	});
+	Object.defineProperties(Object.prototype, {
+		// Extension function to attach an event handler to an element
+		"attachEventHandler": {
+			"value": function(type, handler) {
+				// Add an object whose properties are the element, the event type, and the event handler to the list of event handlers
+				eventHandlers.add({
+					"element": this,
+					"type": type,
+					"handler": handler
+				});
+				// Attach the event handler
+				this.addEventListener(type, handler);
+			}
+		},
+		// Extension function to detach an event handler from an element
+		"detachEventHandler": {
+			"value": function(type, handler) {
+				// Detach the event handler and remove the corresponding entry from the list of event handlers
+				let removeHandler = function(value, index, source) {
+					let eventHandler = value.handler;
+					if((value.element === this) && (value.type === type) && ((eventHandler.__source__ || eventHandler) === (handler.__source__ || handler))) {
+						// Detach the event handler
+						this.removeEventListener(type, eventHandler);
+						// Remove the object containing the element, the event type,
+						// and the event handler from the list of event handlers
+						eventHandlers.delete(value);
+						// Exit the loop
+						return true;
+					}
+					eventHandler = null;
+				};
+				// Loop through the list of event handlers until the one that should be removed is found
+				Array.from(eventHandlers).some(removeHandler.bind(this));
+			}
 		}
-	}
-});
+	});
+})();
 // The singleton jsCrop factory
 let jsCrop = (function() {
 	return Object.freeze({
-		// Create a new jsCrop instance and initialise it with the specified image and options
-		"initialise": function(imageElement, options) {
-			// Check whether there is an active jsCrop instance initialised using the image
+		// Create a new jsCrop instance and initialise it with the specified image element and options
+		"initialise": function(imageElement, options = {}) {
+			// Check whether the source image is attached to an active jsCrop instance
 			if(!imageElement.dataset["jsCropInitialised"]) {
 				// The internal object that encapsulates the underlying functionality of the jsCrop instance
 				let cropper = {
@@ -194,7 +195,7 @@ let jsCrop = (function() {
 						// Update the crop result
 						this.drawCroppedImage();
 						// Set the target URL of the anchor element to a data URI pointing to
-						// the binary representation of the result image in PNG format
+						// the binary representation of the output image in PNG format
 						anchorElement.href = this.cropResult.toDataURL("image/png").replace("image/png", "image/octet-stream");
 						// Set the download file name in the format "<source-image-name>-cropped.png"
 						anchorElement.download = `${this.imageToCrop.src.match(/^.*[\\\/](.+?)(\.[^.]*$|$)/)[1]}-cropped.png`;
@@ -467,9 +468,11 @@ let jsCrop = (function() {
 					// Restore the page to its former state and release the resources
 					"destroy": function() {
 						try {
-							// Move the image element back to its original position in the DOM tree
+							// The parent element of the source image
 							let imageHolder = this.imageToCrop.parentElement;
+							// Remove the flag indicating the source image is attached to a jsCrop instance
 							delete this.imageToCrop.dataset["jsCropInitialised"];
+							// Move the source image back to its original position in the DOM tree
 							imageHolder.parentElement.insertBefore(this.imageToCrop, imageHolder);
 							// Detach the event handlers
 							window.detachEventHandler("unload", this.destroy.bind(this));
@@ -504,7 +507,7 @@ let jsCrop = (function() {
 							void(0);
 						}
 					},
-					// Initialise the crop grid and the output canvas
+					// Initialise the crop grid
 					"initialiseGrid": function() {
 						// The bounding rectangle of the source image
 						let imageToCropClientBoundingRect = this.imageToCrop.getBoundingClientRect();
@@ -533,8 +536,6 @@ let jsCrop = (function() {
 						// Set the maximum top and left boundaries of the crop grid
 						this.maxLeft = (this.maxWidth - this.minWidth);
 						this.maxTop = (this.maxHeight - this.minHeight);
-						// Initialise the output canvas
-						this.setOutputCanvas(document.createElement("canvas"));
 						// Attach event handlers
 						Object.entries(this.resizers).forEach(function([key, value]) {
 							value.attachEventHandler("mousedown", this.startResizingGrid.bind(this));
@@ -547,8 +548,7 @@ let jsCrop = (function() {
 						imageToCropClientBoundingRect = null;
 					}
 				};
-				// TODO: Update comments
-				// Create page elements
+				// Create and initialise the necessary page elements
 				let imageHolder = document.createElement("div");
 				let resizerClassNames = ["top-left", "top-mid", "top-right", "right-mid", "bot-right", "bot-mid", "bot-left", "left-mid"];
 				let gridTableBody = document.createElement("tbody");
@@ -558,24 +558,24 @@ let jsCrop = (function() {
 					let resizerClassName = `js-crop-resizer js-crop-${value}`;
 					resizer.className = resizerClassName;
 					resizerHandle.className = `${resizerClassName} js-crop-handle`;
-					cropper.resizers[value.split("-").reduce((x, y) => x += (y[0].toUpperCase() + y.substring(1)))] = resizer;
+					cropper.resizers[value.replace(/-(.)/g, x => x[1].toUpperCase())] = resizer;
 					cropper.gridHolder.appendChild(resizerHandle);
 					cropper.gridHolder.appendChild(resizer);
 					resizerHandle = null;
 					resizer = null;
 				};
-				// Mark image as initialised
+				// Flag the source image as being attached to a jsCrop instance
 				imageElement.dataset["jsCropInitialised"] = true;
-				// Update cropper references
+				// Update the element references
 				cropper.imageToCrop = imageElement;
 				cropper.imageOverlay = document.createElement("canvas");
 				cropper.gridHolder = document.createElement("div");
 				cropper.grid = document.createElement("table");
-				// Add classes
+				// Add class names to the elements
 				cropper.gridHolder.classList.add("js-crop-grid-holder");
 				cropper.grid.classList.add("js-crop-grid");
 				imageHolder.classList.add("js-crop-image-holder");
-				// Add elements to page
+				// Add the elements to the page
 				resizerClassNames.forEach(addResizer.bind(this));
 				for(let rowLoopIndex = 0; rowLoopIndex <= 2; rowLoopIndex++) {
 					let tableRow = document.createElement("tr");
@@ -590,18 +590,16 @@ let jsCrop = (function() {
 				imageHolder.appendChild(imageElement);
 				imageHolder.appendChild(cropper.imageOverlay);
 				imageHolder.appendChild(cropper.gridHolder);
-				// Initialise grid
+				// Initialise the crop grid
 				cropper.initialiseGrid();
-				// Check options
-				if(!options)
-					options = {};
-				cropper.setOutputCanvas(options.outputCanvas || cropper.cropResult);
+				// Apply the settings provided
+				cropper.setOutputCanvas(options.outputCanvas || document.createElement("canvas"));
 				cropper.enableCropMode(!(options.startInCropMode === false));
-				// Remove element references
+				// Remove the element references
 				gridTableBody = null;
 				resizerClassNames = null;
 				imageHolder = null;
-				// Return encapsulated proxy object
+				// Return a wrapper object that exposes only the bare minimum functionality
 				return Object.freeze({
 					"enableCropMode": cropper.enableCropMode.bind(cropper),
 					"setOutputCanvas": cropper.setOutputCanvas.bind(cropper),
