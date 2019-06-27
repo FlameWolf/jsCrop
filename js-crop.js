@@ -5,7 +5,7 @@
 	const bind = Function.prototype.bind;
 	// A list that will store the event handlers attached to elements so that they can be detached properly later
 	const eventHandlers = new Set();
-	// Override Function.prototype.bind so that the new Function object returned by it
+	// Overrides Function.prototype.bind so that the new Function object returned by it
 	// contains a reference to the original Function object on which it was called
 	Object.defineProperty(Function.prototype, "bind", {
 		"value": function() {
@@ -17,7 +17,7 @@
 		}
 	});
 	Object.defineProperties(Object.prototype, {
-		// Extension function to attach an event handler to an element
+		// Attaches an event handler to an element
 		"attachEventHandler": {
 			"value": function(type, handler) {
 				// Add an object whose properties are the element, the event type, and the event handler to the list of event handlers
@@ -30,7 +30,7 @@
 				this.addEventListener(type, handler);
 			}
 		},
-		// Extension function to detach an event handler from an element
+		// Detaches an event handler from an element
 		"detachEventHandler": {
 			"value": function(type, handler) {
 				// Detach the event handler and remove the corresponding entry from the list of event handlers
@@ -56,10 +56,12 @@
 // The singleton jsCrop factory
 let jsCrop = (function() {
 	return Object.freeze({
-		// Create a new jsCrop instance and initialise it with the specified image element and options
+		// Returns a jsCrop instance initialised with the specified image and options
 		"initialise": function(imageElement, options = {}) {
-			// Check whether the source image is attached to an active jsCrop instance
-			if(!imageElement.dataset["jsCropInitialised"]) {
+			// Check whether there is an active jsCrop instance attached to the source image
+			let currentInstance = imageElement.jsCropInstance;
+			// If not then create a new jsCrop instance and return it
+			if(!currentInstance) {
 				// The internal object that encapsulates the underlying functionality of the jsCrop instance
 				let cropper = {
 					// Minimum/maximum boundaries of the crop grid
@@ -127,7 +129,7 @@ let jsCrop = (function() {
 					"gridHolderTop": 0,
 					"gridHolderWidth": 0,
 					"gridHolderHeight": 0,
-					// Toggle crop state
+					// Toggles the crop state
 					"enableCropMode": function(flag) {
 						if(flag) {
 							// Show the image overlay
@@ -147,7 +149,7 @@ let jsCrop = (function() {
 							this.imageOverlay.style.opacity = "0";
 						}
 					},
-					// Set the output canvas
+					// Sets the output canvas
 					"setOutputCanvas": function(canvasElement) {
 						// Update the output canvas reference
 						this.cropResult = canvasElement;
@@ -158,7 +160,7 @@ let jsCrop = (function() {
 						// Draw the crop result on to the output canvas
 						this.drawCroppedImage();
 					},
-					// Generate the crop result
+					// Generates the crop result
 					"drawCroppedImage": function() {
 						// Get the current position and size of the grid holder
 						this.gridHolderLeft = this.gridHolder.offsetLeft;
@@ -186,7 +188,7 @@ let jsCrop = (function() {
 							// are the same as the source width and height respectively
 							0, 0, this.gridHolderWidth, this.gridHolderHeight);
 					},
-					// Download the crop result
+					// Downloads the crop result
 					"downloadCroppedImage": function() {
 						// Create a new anchor element
 						let anchorElement = document.createElement("a");
@@ -214,7 +216,7 @@ let jsCrop = (function() {
 							anchorElement = null;
 						});
 					},
-					// Adjust the boundaries of the crop grid so that it may not spill outside the source image
+					// Adjusts the boundaries of the crop grid so that it may not spill outside the source image
 					"fixGrid": function() {
 						// Get the current position and size of the grid holder
 						this.gridHolderLeft = this.gridHolder.offsetLeft;
@@ -250,14 +252,14 @@ let jsCrop = (function() {
 								this.gridHolderStyle.top = (this.gridHolder.offsetTop - (this.gridHolderHeight - this.maxHeight)) + "px";
 						}
 					},
-					// Update the image overlay canvas to highlight the selected area of the source image
+					// Updates the image overlay canvas to highlight the selected area of the source image
 					"updateCropBackground": function() {
 						// Fill the image overlay canvas with the default fill colour (#000000)
 						this.imageOverlayContext.fillRect(0, 0, this.imageOverlay.width, this.imageOverlay.height);
 						// Make the area bound by the crop grid transparent
 						this.imageOverlayContext.clearRect(this.gridHolder.offsetLeft, this.gridHolder.offsetTop, this.gridHolder.offsetWidth, this.gridHolder.offsetHeight);
 					},
-					// Set the position and size of the crop grid
+					// Sets the position and size of the crop grid
 					"setCropRegion": function(left, top, width, height) {
 						// If the left parameter passed is less than the minimum left, set its value to the minimum left
 						if(left < this.minLeft)
@@ -277,7 +279,7 @@ let jsCrop = (function() {
 						// Update the crop result
 						this.drawCroppedImage();
 					},
-					// Resize the crop grid when dragging any of the resize handles
+					// Resizes the crop grid when any of the resize handles is dragged
 					"resizeGrid": function(event) {
 						// Prevent the default action
 						event.preventDefault();
@@ -430,18 +432,18 @@ let jsCrop = (function() {
 						// Update the crop result
 						this.drawCroppedImage();
 					},
-					// Fires when the mouse is released
-					"endResizingGrid": function(event) {
+					// Stops resizing the crop grid when the mouse is released
+					"stopResizingGrid": function(event) {
 						// Prevent the default action
 						event.preventDefault();
 						// Stop listening to the mouse up and mouse move event handlers
 						// because they are no longer needed once the mouse is released
-						document.detachEventHandler("mouseup", this.endResizingGrid.bind(this));
+						document.detachEventHandler("mouseup", this.stopResizingGrid.bind(this));
 						document.detachEventHandler("mousemove", this.resizeGrid.bind(this));
 						// No mouse down trigger
 						this.mouseDownElement = null;
 					},
-					// Fires when the mouse is pressed
+					// Starts resizing the crop grid when the mouse is pressed
 					"startResizingGrid": function(event) {
 						// Prevent the default action
 						event.preventDefault();
@@ -458,20 +460,20 @@ let jsCrop = (function() {
 						// Start listening to the mouse move and mouse up events
 						// when the mouse is pressed on a resizer element
 						document.attachEventHandler("mousemove", this.resizeGrid.bind(this));
-						document.attachEventHandler("mouseup", this.endResizingGrid.bind(this));
+						document.attachEventHandler("mouseup", this.stopResizingGrid.bind(this));
 					},
-					// Hide the crop grid when it is made transparent so that it may no longer respond to events
+					// Hides the crop grid when it is made transparent so that it may no longer respond to events
 					"hideGrid": function() {
 						if(!this.gridHolderStyle.opacity)
 							this.gridHolderStyle.removeProperty("visibility");
 					},
-					// Restore the page to its former state and release the resources
+					// Restores the page to its former state and release the resources
 					"destroy": function() {
 						try {
 							// The parent element of the source image
 							let imageHolder = this.imageToCrop.parentElement;
-							// Remove the flag indicating the source image is attached to a jsCrop instance
-							delete this.imageToCrop.dataset["jsCropInitialised"];
+							// Detach the jsCrop instance from the source image
+							delete this.imageToCrop.jsCropInstance;
 							// Move the source image back to its original position in the DOM tree
 							imageHolder.parentElement.insertBefore(this.imageToCrop, imageHolder);
 							// Detach the event handlers
@@ -507,7 +509,7 @@ let jsCrop = (function() {
 							void(0);
 						}
 					},
-					// Initialise the crop grid
+					// Initialises the crop grid
 					"initialiseGrid": function() {
 						// The bounding rectangle of the source image
 						let imageToCropClientBoundingRect = this.imageToCrop.getBoundingClientRect();
@@ -564,8 +566,6 @@ let jsCrop = (function() {
 					resizerHandle = null;
 					resizer = null;
 				};
-				// Flag the source image as being attached to a jsCrop instance
-				imageElement.dataset["jsCropInitialised"] = true;
 				// Update the element references
 				cropper.imageToCrop = imageElement;
 				cropper.imageOverlay = document.createElement("canvas");
@@ -599,8 +599,8 @@ let jsCrop = (function() {
 				gridTableBody = null;
 				resizerClassNames = null;
 				imageHolder = null;
-				// Return a wrapper object that exposes only the bare minimum functionality
-				return Object.freeze({
+				// Create the jsCrop instance
+				currentInstance = Object.freeze({
 					"enableCropMode": cropper.enableCropMode.bind(cropper),
 					"setOutputCanvas": cropper.setOutputCanvas.bind(cropper),
 					"drawCroppedImage": cropper.drawCroppedImage.bind(cropper),
@@ -608,7 +608,21 @@ let jsCrop = (function() {
 					"setCropRegion": cropper.setCropRegion.bind(cropper),
 					"destroy": cropper.destroy.bind(cropper)
 				});
+				// Attach the jsCrop instance to the source image
+				Object.defineProperty(imageElement, "jsCropInstance", {
+					"value": currentInstance,
+					"configurable": true
+				});
 			}
+			// If an active jsCrop instance is attached to the source image
+			else {
+				// Destroy the jsCrop instance
+				currentInstance.destroy();
+				// Initialise the jsCrop instance with the specified image and options
+				currentInstance = this.initialise(imageElement, options);
+			}
+			// Return the jsCrop instance
+			return currentInstance;
 		}
 	});
 })();
