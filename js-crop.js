@@ -58,9 +58,9 @@ let jsCrop = (function() {
 	return Object.freeze({
 		// Returns a jsCrop instance initialised with the specified image and options
 		"initialise": function(imageElement, options = {}) {
-			// Check whether there is an active jsCrop instance attached to the source image
+			// Get the jsCrop instance attached to the image
 			let currentInstance = imageElement.jsCropInstance;
-			// If not then create a new jsCrop instance and return it
+			// If there is none then create a new jsCrop instance and return it
 			if(!currentInstance) {
 				// The internal object that encapsulates the underlying functionality of the jsCrop instance
 				let cropper = {
@@ -608,13 +608,13 @@ let jsCrop = (function() {
 					"setCropRegion": cropper.setCropRegion.bind(cropper),
 					"destroy": cropper.destroy.bind(cropper)
 				});
-				// Attach the jsCrop instance to the source image
+				// Attach the jsCrop instance to the image
 				Object.defineProperty(imageElement, "jsCropInstance", {
 					"value": currentInstance,
 					"configurable": true
 				});
 			}
-			// If an active jsCrop instance is attached to the source image
+			// If there is a jsCrop instance attached to the image
 			else {
 				// Destroy the jsCrop instance
 				currentInstance.destroy();
@@ -623,6 +623,11 @@ let jsCrop = (function() {
 			}
 			// Return the jsCrop instance
 			return currentInstance;
+		},
+		// Returns the jsCrop instance attached to the specified image
+		"getCurrentInstance": function(imageElement) {
+			// Return the jsCrop instance attached to the image
+			return imageElement.jsCropInstance;
 		}
 	});
 })();
