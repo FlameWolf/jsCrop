@@ -20,7 +20,9 @@ let cropper = jsCrop.initialise(document.getElementById("imageToCrop"));
 
   - `outputCanvas`: A `<canvas>` element on the page on to which `jsCrop` should draw the output image.
   - `startInCropMode`: Whether or not to display the crop grid initially. Default is `true`.
+
   &#xA0;
+
   > :warning: _Warning:_ Calling `jsCrop.initialise` on an image that already has a `jsCrop` instance associated with it will destroy the `jsCrop` instance that is currently associated with it. This is by design. If you want to get the `jsCrop` instance that is currently associated with an image, use `jsCrop.getCurrentInstance`.
 
 - `getCurrentInstance (`_`imageElement`_`)`: Returns the `jsCrop` instance that is currently associated with the specified image.
