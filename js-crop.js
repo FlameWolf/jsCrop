@@ -171,10 +171,10 @@ let jsCrop = (function() {
 						// selected area and adjust the left, top, and bottom margins so that the position
 						// of the output image will match the position of the crop grid relative to the source image
 						this.cropResult.width = this.gridHolderWidth;
-						this.cropResultStyle.marginLeft = this.gridHolderLeft + "px";
+						this.cropResultStyle.marginLeft = `${this.gridHolderLeft}px`;
 						this.cropResult.height = this.gridHolderHeight;
-						this.cropResultStyle.marginTop = this.gridHolderTop + "px";
-						this.cropResultStyle.marginBottom = (this.imageToCrop.offsetHeight - (this.gridHolderHeight + this.gridHolderTop)) + "px";
+						this.cropResultStyle.marginTop = `${this.gridHolderTop}px`;
+						this.cropResultStyle.marginBottom = `${(this.imageToCrop.offsetHeight - (this.gridHolderHeight + this.gridHolderTop))}px`;
 						// Clear the output canvas
 						this.cropResultContext.clearRect(0, 0, this.gridHolderWidth, this.gridHolderHeight);
 						// Draw the cropped image
@@ -231,25 +231,25 @@ let jsCrop = (function() {
 						if(this.mouseDownElement !== this.grid) {
 							// If the width of the grid holder is more than the maximum width, set its width to the maximum width
 							if(this.gridHolderWidth > this.maxWidth)
-								this.gridHolderStyle.width = this.maxWidth + "px";
+								this.gridHolderStyle.width = `${this.maxWidth}px`;
 							// If the height of the grid holder is more than the maximum height, set its height to the maximum height
 							if(this.gridHolderHeight > this.maxHeight)
-								this.gridHolderStyle.height = this.maxHeight + "px";
+								this.gridHolderStyle.height = `${this.maxHeight}px`;
 							// If the width of the grid holder is less than the minimum width, set its width to the minimum width
 							if(this.gridHolderWidth < this.minWidth)
-								this.gridHolderStyle.width = this.minWidth + "px";
+								this.gridHolderStyle.width = `${this.minWidth}px`;
 							// If the height of the grid holder is less than the minimum height, set its height to the minimum height
 							if(this.gridHolderHeight < this.minHeight)
-								this.gridHolderStyle.height = this.minHeight + "px";
+								this.gridHolderStyle.height = `${this.minHeight}px`;
 						}
 						// If the element being dragged is the grid
 						else {
 							// Update the left position of the grid holder so that so its width may not exceed the maximum width
 							if(this.gridHolderWidth > this.maxWidth)
-								this.gridHolderStyle.left = (this.gridHolder.offsetLeft - (this.gridHolderWidth - this.maxWidth)) + "px";
+								this.gridHolderStyle.left = `${(this.gridHolder.offsetLeft - (this.gridHolderWidth - this.maxWidth))}px`;
 							// Update the top position of the grid holder so that so its height may not exceed the maximum height
 							if(this.gridHolderHeight > this.maxHeight)
-								this.gridHolderStyle.top = (this.gridHolder.offsetTop - (this.gridHolderHeight - this.maxHeight)) + "px";
+								this.gridHolderStyle.top = `${(this.gridHolder.offsetTop - (this.gridHolderHeight - this.maxHeight))}px`;
 						}
 					},
 					// Updates the image overlay canvas to highlight the selected area of the source image
@@ -320,12 +320,12 @@ let jsCrop = (function() {
 								this.newWidth -= this.deltaX;
 								this.newHeight -= this.deltaY;
 								if(this.newWidth > this.minWidth) {
-									this.gridHolderStyle.left = this.newLeft + "px";
-									this.gridHolderStyle.width = this.newWidth + "px";
+									this.gridHolderStyle.left = `${this.newLeft}px`;
+									this.gridHolderStyle.width = `${this.newWidth}px`;
 								}
 								if(this.newHeight > this.minHeight) {
-									this.gridHolderStyle.top = this.newTop + "px";
-									this.gridHolderStyle.height = this.newHeight + "px";
+									this.gridHolderStyle.top = `${this.newTop}px`;
+									this.gridHolderStyle.height = `${this.newHeight}px`;
 								}
 								break;
 							// Top middle
@@ -334,8 +334,8 @@ let jsCrop = (function() {
 								// and update the height so that the bottom edge will stay the same
 								this.newHeight -= this.deltaY;
 								if(this.newHeight > this.minHeight) {
-									this.gridHolderStyle.top = this.newTop + "px";
-									this.gridHolderStyle.height = this.newHeight + "px";
+									this.gridHolderStyle.top = `${this.newTop}px`;
+									this.gridHolderStyle.height = `${this.newHeight}px`;
 								}
 								break;
 							// Top right
@@ -345,10 +345,10 @@ let jsCrop = (function() {
 								this.newWidth += this.deltaX;
 								this.newHeight -= this.deltaY;
 								if(this.newWidth > this.minWidth)
-									this.gridHolderStyle.width = this.newWidth + "px";
+									this.gridHolderStyle.width = `${this.newWidth}px`;
 								if(this.newHeight > this.minHeight) {
-									this.gridHolderStyle.top = this.newTop + "px";
-									this.gridHolderStyle.height = this.newHeight + "px";
+									this.gridHolderStyle.top = `${this.newTop}px`;
+									this.gridHolderStyle.height = `${this.newHeight}px`;
 								}
 								break;
 							// Right middle
@@ -356,7 +356,7 @@ let jsCrop = (function() {
 								// Change the width according to the mouse position
 								this.newWidth += this.deltaX;
 								if(this.newWidth > this.minWidth)
-									this.gridHolderStyle.width = this.newWidth + "px";
+									this.gridHolderStyle.width = `${this.newWidth}px`;
 								break;
 							// Bottom right
 							case this.resizers.botRight:
@@ -364,16 +364,16 @@ let jsCrop = (function() {
 								this.newWidth += this.deltaX;
 								this.newHeight += this.deltaY;
 								if(this.newWidth > this.minWidth)
-									this.gridHolderStyle.width = this.newWidth + "px";
+									this.gridHolderStyle.width = `${this.newWidth}px`;
 								if(this.newHeight > this.minHeight)
-									this.gridHolderStyle.height = this.newHeight + "px";
+									this.gridHolderStyle.height = `${this.newHeight}px`;
 								break;
 							// Bottom middle
 							case this.resizers.botMid:
 								// Change the height according to the mouse position
 								this.newHeight += this.deltaY;
 								if(this.newHeight > this.minHeight)
-									this.gridHolderStyle.height = this.newHeight + "px";
+									this.gridHolderStyle.height = `${this.newHeight}px`;
 								break;
 							// Bottom left
 							case this.resizers.botLeft:
@@ -382,11 +382,11 @@ let jsCrop = (function() {
 								this.newWidth -= this.deltaX;
 								this.newHeight += this.deltaY;
 								if(this.newWidth > this.minWidth) {
-									this.gridHolderStyle.left = this.newLeft + "px";
-									this.gridHolderStyle.width = this.newWidth + "px";
+									this.gridHolderStyle.left = `${this.newLeft}px`;
+									this.gridHolderStyle.width = `${this.newWidth}px`;
 								}
 								if(this.newHeight > this.minHeight)
-									this.gridHolderStyle.height = this.newHeight + "px";
+									this.gridHolderStyle.height = `${this.newHeight}px`;
 								break;
 							// Left middle
 							case this.resizers.leftMid:
@@ -394,17 +394,17 @@ let jsCrop = (function() {
 								// and update the width so that the right edge will stay the same
 								this.newWidth -= this.deltaX;
 								if(this.newWidth > this.minWidth) {
-									this.gridHolderStyle.left = this.newLeft + "px";
-									this.gridHolderStyle.width = this.newWidth + "px";
+									this.gridHolderStyle.left = `${this.newLeft}px`;
+									this.gridHolderStyle.width = `${this.newWidth}px`;
 								}
 								break;
 							// Crop grid
 							case this.grid:
 								// Change the left and top positions according to the mouse position
 								if((this.newLeft < this.gridHolder.offsetLeft) || (this.gridHolder.offsetWidth < this.maxWidth))
-									this.gridHolderStyle.left = this.newLeft + "px";
+									this.gridHolderStyle.left = `${this.newLeft}px`;
 								if((this.newTop < this.gridHolder.offsetTop) || (this.gridHolder.offsetHeight < this.maxHeight))
-									this.gridHolderStyle.top = this.newTop + "px";
+									this.gridHolderStyle.top = `${this.newTop}px`;
 								// If the crop grid hits the left/top/right/bottom boundaries, update
 								// the original mouse position and the original left position, so that
 								// when the user moves the cursor back, the crop grid won't remain locked
@@ -530,8 +530,8 @@ let jsCrop = (function() {
 						// Set the initial size of the crop grid as 20 pixels smaller than the source image
 						this.gridHolderStyle.top = "20px";
 						this.gridHolderStyle.left = "20px";
-						this.gridHolderStyle.width = (imageWidth - 40) + "px";
-						this.gridHolderStyle.height = (imageHeight - 40) + "px";
+						this.gridHolderStyle.width = `${(imageWidth - 40)}px`;
+						this.gridHolderStyle.height = `${(imageHeight - 40)}px`;
 						// Set the maximum width and maximum height of the crop grid to the same as those of the source image
 						this.maxWidth = imageWidth;
 						this.maxHeight = imageHeight;
